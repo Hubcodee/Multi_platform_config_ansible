@@ -1,0 +1,35 @@
+- hosts : all
+  become : true
+  vars_files :
+    - "{{ ansible_facts['distribution'] }}.yml"
+  vars :
+    - OS : "{{ ansible_facts['distribution'] }}"
+    - Version : "{{ ansible_facts['distribution_major_version'] }}"
+
+  tasks:
+  - name : "Installing webServer..."
+    package : 
+      name : "{{ package }}"
+      state : present
+
+  - name : "Copying web pages to server"
+    template :
+      src : index.html      
+      dest : "{{ document_root  }}"
+    register : webpage_status
+
+  - name : "Server..."
+    debug :
+            msg : "OS : {{ OS }} Version : {{ Version }}"
+
+  - name : "Restarting httpd server"
+    service : 
+      name : "{{ service  }}"
+      state : restarted
+    when : webpage_status.changed == true
+
+  - name : "Starting httpd server"
+    service : 
+      name : "{{ service }}"
+      state : started
+   
